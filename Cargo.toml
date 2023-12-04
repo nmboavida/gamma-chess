@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "data-loader",
+]
+
+[profile.release]
+debug = true
+
+[profile.dev]
+debug = true
