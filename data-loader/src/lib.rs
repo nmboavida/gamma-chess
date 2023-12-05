@@ -1,2 +1,2 @@
 pub mod loader;
-mod proto;
+pub mod proto;

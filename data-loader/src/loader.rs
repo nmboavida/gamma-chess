@@ -35,7 +35,6 @@ impl Visitor for MyVisitor {
     }
 
     fn san(&mut self, san_plus: SanPlus) {
-        // self.current_game_moves.push(san_plus.san.to_string()); // Store the move
         self.current_game_moves.push(san_plus.san); // Store the move
     }
 
@@ -77,10 +76,7 @@ pub fn read_games_in_chunk(
                 let mut buffered_reader = BufferedReader::new(file);
                 let mut visitor = MyVisitor::new(chunk_size);
 
-                let mut i = 0;
                 while let Ok(game_read) = buffered_reader.read_game(&mut visitor) {
-                    println!("{:?}", i);
-                    i += 1;
                     match game_read {
                         Some(_) => {
                             if visitor.is_done() {
@@ -127,7 +123,7 @@ mod tests {
     #[test]
     fn test_read_games_in_chunk_100() {
         let start_index = 0;
-        let chunk_size = 1; // Adjust this based on your dataset
+        let chunk_size = 100_000; // Adjust this based on your dataset
 
         let games =
             read_games_in_chunk(INDEX_FILE_PATH, PGN_FILE_PATH, start_index, chunk_size).unwrap();

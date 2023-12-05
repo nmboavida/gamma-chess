@@ -4,32 +4,11 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 
 pub fn main() {
-    // if let Err(e) = print_first_1000_lines("./dataset/lichess_db_standard_rated_2016-05.pgn") {
-    //     eprintln!("Error occurred: {}", e);
-    // }
-
     create_index(
         "./dataset/lichess_db_standard_rated_2016-05.pgn",
-        "./dataset/index_dummy.txt",
+        "./dataset/index.txt",
     )
     .expect("Index creation failed");
-}
-
-fn print_first_1000_lines(file_path: &str) -> Result<()> {
-    let file = File::open(file_path)?;
-    let reader = BufReader::new(file);
-
-    for (i, line) in reader.lines().enumerate() {
-        let line = line?;
-        println!("{}", line);
-
-        if i >= 999 {
-            // Zero-based index, so 999 means 1000 lines
-            break;
-        }
-    }
-
-    Ok(())
 }
 
 pub fn create_index(pgn_file_path: &str, index_file_path: &str) -> Result<()> {
@@ -57,9 +36,7 @@ pub fn create_index(pgn_file_path: &str, index_file_path: &str) -> Result<()> {
             break;
         }
         let line = line?;
-        println!("{}", line);
         if line.starts_with("[Event ") && !in_game {
-            println!("WOHO!! Index: {}", i);
             // Start of a new game
             writeln!(index_file, "{}", offset)?;
             in_game = true;
