@@ -51,6 +51,7 @@ Remember, this is a complex task that may require significant computational reso
 3. Packages:
    1. `poetry add python-chess`
    2. `poetry add jupyter lab`
+4. Install protocol buffers: `brew install protobuf`
 
 ## Dataset
 

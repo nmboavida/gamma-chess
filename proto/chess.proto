@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message ChessGame {
+    repeated string moves = 1;
+}
+
+message ChessDataSet {
+    repeated ChessGame games = 1;
+}
