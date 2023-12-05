@@ -27,14 +27,7 @@ pub fn create_index(pgn_file_path: &str, index_file_path: &str) -> Result<()> {
     let mut offset: u64 = 0;
     let mut in_game = false;
 
-    let mut i = 0;
-
     for line in reader.lines() {
-        i += 1;
-
-        if i >= 1_000 {
-            break;
-        }
         let line = line?;
         if line.starts_with("[Event ") && !in_game {
             // Start of a new game

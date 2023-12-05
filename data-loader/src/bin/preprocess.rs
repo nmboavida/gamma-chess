@@ -4,24 +4,31 @@ use data_loader::proto::{ChessDataSet, ChessGame};
 use indicatif::{ProgressBar, ProgressStyle};
 use prost::Message;
 use rayon::prelude::*;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
+use std::path::Path;
 use std::sync::{Arc, RwLock};
 
 fn main() -> Result<()> {
+    // Create chunks folder if it does not exist yet
+    let chunks_dir = Path::new("./dataset/chunks");
+    if !chunks_dir.exists() {
+        fs::create_dir_all(chunks_dir).expect("Failed to create directory");
+    }
+
     let index_file_path = "./dataset/index.txt";
     let pgn_file_path = "./dataset/lichess_db_standard_rated_2016-05.pgn";
     let chunk_size = 10_000; // Define your chunk size
     let total_games = 6_225_957; // Total number of games to process
+                                 // let total_games = 10_000; // Total number of games to process
 
     let num_chunks = (total_games as f64 / chunk_size as f64).ceil() as usize;
     let last_chunk_id = num_chunks - 1;
 
     let progress_bar = ProgressBar::new(num_chunks as u64);
-    progress_bar.set_style(
-        ProgressStyle::default_bar()
-            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({eta})")?,
-    );
+    progress_bar.set_style(ProgressStyle::default_bar().template(
+        "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+    )?);
 
     let i = Arc::new(RwLock::new(1));
 
@@ -86,9 +93,7 @@ fn process_chunk(
     // Convert each game's moves into ChessGame messages
     let games: Vec<ChessGame> = games_san
         .into_iter()
-        .map(|game_moves| ChessGame {
-            moves: game_moves.into_iter().map(|san| san.to_string()).collect(),
-        })
+        .map(|game_moves| ChessGame { moves: game_moves })
         .collect();
 
     // Create and return a ChessDataSet containing these games

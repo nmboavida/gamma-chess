@@ -6,12 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-shakmaty = "0.26"
 anyhow = "1.0"
 pgn-reader = "0.25"
-chess = "3.2"
 indicatif = "0.17"
 rayon = "1.8"
 prost = "0.12"
 bytes = "1.5"
 prost-build = "0.12"
+shakmaty = "0.26"

@@ -1,15 +1,19 @@
 use anyhow::{anyhow, Result};
-use pgn_reader::{BufferedReader, RawHeader, San, SanPlus, Skip, Visitor};
+use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
+use shakmaty::uci::Uci;
+use shakmaty::{san::San, Chess, Position};
 use std::fs::File;
 use std::io::BufRead;
+use std::str::FromStr;
 use std::{
     io::{BufReader, Seek, SeekFrom},
     mem,
 };
 
 struct MyVisitor {
-    games: Vec<Vec<San>>,         // Vector of games, each game is a vector of moves
-    current_game_moves: Vec<San>, // Vector to store moves of the current game
+    games: Vec<Vec<String>>, // Vector of games, each game is a vector of moves
+    current_game_moves: Vec<String>, // Vector to store moves of the current game
+    current_board: Chess,    // A board to track the current state
     max_games: usize,
 }
 
@@ -18,6 +22,7 @@ impl MyVisitor {
         MyVisitor {
             games: Vec::with_capacity(max_games),
             current_game_moves: Vec::new(),
+            current_board: Chess::default(),
             max_games,
         }
     }
@@ -31,11 +36,39 @@ impl Visitor for MyVisitor {
     type Result = ();
 
     fn begin_game(&mut self) {
-        self.current_game_moves.clear()
+        self.current_game_moves.clear();
+        self.current_board = Chess::default();
     }
 
     fn san(&mut self, san_plus: SanPlus) {
-        self.current_game_moves.push(san_plus.san); // Store the move
+        let san_str = san_plus.san.to_string();
+
+        match San::from_str(&san_str) {
+            Ok(san_move) => {
+                // Convert SAN to a Move
+                if let Ok(chess_move) = san_move.to_move(&self.current_board) {
+                    let uci = Uci::from_standard(&chess_move);
+
+                    // Store the move in UCI notation
+                    self.current_game_moves.push(uci.to_string());
+
+                    // Apply the move and update the board state
+                    let new_board_res = self.current_board.clone().play(&chess_move);
+
+                    if let Ok(new_board) = new_board_res {
+                        self.current_board = new_board;
+                    } else {
+                        eprintln!("Failed to apply move to the board");
+                    }
+                } else {
+                    eprintln!("Failed to convert SAN to move");
+                }
+            }
+            Err(e) => {
+                println!("the move: {}", san_str);
+                eprintln!("Failed to parse SAN: {}", e);
+            }
+        }
     }
 
     fn header(&mut self, _key: &[u8], _value: RawHeader) {
@@ -61,7 +94,7 @@ pub fn read_games_in_chunk(
     pgn_file_path: &str,
     start_index: usize,
     chunk_size: usize,
-) -> Result<Vec<Vec<San>>> {
+) -> Result<Vec<Vec<String>>> {
     let index_file = File::open(index_file_path)?;
     let reader = BufReader::new(index_file);
 
