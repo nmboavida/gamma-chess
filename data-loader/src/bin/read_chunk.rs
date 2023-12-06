@@ -1,9 +1,8 @@
 use anyhow::Result;
-use data_loader::proto::{ChessDataSet, ChessGame};
+use data_loader::proto::ChessDataSet;
 use prost::Message;
 use std::fs::File;
 use std::io::Read;
-use std::path::Path;
 
 fn main() -> Result<()> {
     let chunk_id = 0; // Replace with the desired chunk ID

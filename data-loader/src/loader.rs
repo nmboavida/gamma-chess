@@ -15,6 +15,7 @@ struct MyVisitor {
     current_game_moves: Vec<String>, // Vector to store moves of the current game
     current_board: Chess,    // A board to track the current state
     max_games: usize,
+    skip_current_game: bool,
 }
 
 impl MyVisitor {
@@ -24,11 +25,17 @@ impl MyVisitor {
             current_game_moves: Vec::new(),
             current_board: Chess::default(),
             max_games,
+            skip_current_game: false,
         }
     }
 
     fn is_done(&self) -> bool {
         self.games.len() >= self.max_games
+    }
+
+    fn skip_game(&mut self) {
+        self.current_game_moves.clear();
+        self.skip_current_game = true;
     }
 }
 
@@ -38,9 +45,14 @@ impl Visitor for MyVisitor {
     fn begin_game(&mut self) {
         self.current_game_moves.clear();
         self.current_board = Chess::default();
+        self.skip_current_game = false;
     }
 
     fn san(&mut self, san_plus: SanPlus) {
+        if self.skip_current_game {
+            return;
+        }
+
         let san_str = san_plus.san.to_string();
 
         match San::from_str(&san_str) {
@@ -58,15 +70,27 @@ impl Visitor for MyVisitor {
                     if let Ok(new_board) = new_board_res {
                         self.current_board = new_board;
                     } else {
-                        eprintln!("Failed to apply move to the board");
+                        eprintln!(
+                            "Skipping: Failed to apply move '{}' to the board: {} \n",
+                            chess_move,
+                            self.current_board.board()
+                        );
+
+                        self.skip_game();
                     }
                 } else {
-                    eprintln!("Failed to convert SAN to move");
+                    eprintln!(
+                        "Skipping: Failed to convert SAN '{}' to the move. The board: {}",
+                        san_str,
+                        self.current_board.board(),
+                    );
+
+                    self.skip_game();
                 }
             }
             Err(e) => {
-                println!("the move: {}", san_str);
-                eprintln!("Failed to parse SAN: {}", e);
+                eprintln!("Skipping: Failed to parse SAN: {}", e);
+                self.skip_game();
             }
         }
     }
@@ -77,6 +101,10 @@ impl Visitor for MyVisitor {
 
     // Called at the end of a game.
     fn end_game(&mut self) -> Self::Result {
+        if self.skip_current_game {
+            return ();
+        }
+
         // Use `std::mem::take` to efficiently transfer moves without cloning
         // The std::mem::take function replaces self.current_game_moves with a new,
         // empty vector and returns the old vector. This old vector, which contains all the
@@ -134,6 +162,8 @@ pub fn read_games_in_chunk(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pgn_reader::BufferedReader;
+    use std::io::Cursor;
 
     // Assuming the PGN and index files are located in a test_resources directory
     const PGN_FILE_PATH: &str = "../dataset/lichess_db_standard_rated_2016-05.pgn";
@@ -154,17 +184,49 @@ mod tests {
     }
 
     #[test]
-    fn test_read_games_in_chunk_100() {
-        let start_index = 0;
-        let chunk_size = 100_000; // Adjust this based on your dataset
+    fn test_my_visitor() {
+        let pgn_data = r#"
+        [Event "Rated Classical game"]
+        [Site "https://lichess.org/XDQeUk6j"]
+        [White "davidtrolero395"]
+        [Black "OleRedBeard"]
+        [Result "0-1"]
+        [UTCDate "2016.05.15"]
+        [UTCTime "01:05:14"]
+        [WhiteElo "1050"]
+        [BlackElo "1297"]
+        [WhiteRatingDiff "-10"]
+        [BlackRatingDiff "+5"]
+        [ECO "B01"]
+        [Opening "Scandinavian Defense: Mieses-Kotroc Variation"]
+        [TimeControl "600+0"]
+        [Termination "Normal"]
+        
+        1. e4 d5 2. exd5 Qxd5 3. Bb5+ Qxb5 4. d4 b6 5. Qf3 Nc6 6. Ne2 Bb7 7. d5 Ne5 8. Qf4 f6 9. Qe4 Qxd5 10. Qxd5 Bxd5 11. Nd4 Bxg2 12. Rg1 Nf3+ 13. Nxf3 Bxf3 14. Rg3 Bd5 15. Rd3 Bc4 16. Rd1 e5 17. Be3 Bb4+ 18. Bd2 Ba5 19. Bxa5 bxa5 20. Na3 Bf7 21. Nb5 Rc8 22. Nxa7 Ra8 23. Nc6 Ne7 24. Nxe7 Kxe7 25. O-O-O Rad8 26. Rxd8 Kxd8 27. a4 e4 28. c4 Re8 29. c5 e3 30. fxe3 Rxe3 31. c6 f5 32. Rb1 f4 33. b4 f3 34. Rb3 Rxb3 35. bxa5 f2 36. a6 Rb1+ 37. Kxb1 f1=Q+ 38. Kb2 Qf2+ 39. Ka3 Qa2+ 40. Kb4 Qb2+ 41. Ka5 Qb6# 0-1        
+        "#;
 
-        let games =
-            read_games_in_chunk(INDEX_FILE_PATH, PGN_FILE_PATH, start_index, chunk_size).unwrap();
+        // Create a cursor from the PGN data string
+        let cursor = Cursor::new(pgn_data);
 
-        assert_eq!(
-            games.len(),
-            chunk_size,
-            "The number of games returned should match the chunk size."
-        );
+        // Create a BufferedReader from the cursor
+        let mut buffered_reader = BufferedReader::new(cursor);
+
+        // Create a MyVisitor instance for testing
+        let mut visitor = MyVisitor::new(/* max_games */ 1);
+
+        // Iterate through the PGN games using the visitor
+        while let Ok(game_read) = buffered_reader.read_game(&mut visitor) {
+            match game_read {
+                Some(_) => {}
+                None => {
+                    break;
+                }
+            }
+        }
+
+        // Skipping: Failed to convert SAN 'O-O-O' to the move.
+        // The board: r6r/2p1kbpp/5p2/p3p3/8/8/PPP2P1P/R2RK3
+        // Therefore the length of the games vector should be zero
+        assert_eq!(visitor.games.len(), 0);
     }
 }

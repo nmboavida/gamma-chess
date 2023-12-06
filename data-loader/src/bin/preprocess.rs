@@ -20,7 +20,6 @@ fn main() -> Result<()> {
     let pgn_file_path = "./dataset/lichess_db_standard_rated_2016-05.pgn";
     let chunk_size = 10_000; // Define your chunk size
     let total_games = 6_225_957; // Total number of games to process
-                                 // let total_games = 10_000; // Total number of games to process
 
     let num_chunks = (total_games as f64 / chunk_size as f64).ceil() as usize;
     let last_chunk_id = num_chunks - 1;
