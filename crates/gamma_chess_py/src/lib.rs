@@ -1,9 +1,8 @@
+use ::gamma_chess::model::Dataset;
 /// Refer to the sample implementation:
 /// https://github.com/LaurentMazare/tch-ext
 use pyo3::prelude::*;
 use pyo3_tch::PyTensor;
-
-use crate::model::Dataset;
 
 #[pyclass]
 struct PyDataset {

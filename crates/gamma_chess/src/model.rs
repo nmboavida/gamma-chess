@@ -116,3 +116,33 @@ impl Dataset {
         one_hot_move
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dataset_creation() {
+        // Path to the test protobuf file
+        let test_file_path = "../../dataset/chunks/0.pb";
+
+        // Create the dataset
+        let dataset = Dataset::new(test_file_path);
+
+        // Check if the tensors are not empty
+        assert!(
+            dataset.positions.size().iter().product::<i64>() > 0,
+            "Positions tensor is empty"
+        );
+        assert!(
+            dataset.moves.size().iter().product::<i64>() > 0,
+            "Moves tensor is empty"
+        );
+
+        // Optional: Check the shape of the tensors
+        // e.g., assert_eq!(dataset.positions.size(), &[expected_size]);
+
+        // Optional: Check for specific values if known
+        // e.g., assert_eq!(dataset.positions.get(...), expected_value);
+    }
+}

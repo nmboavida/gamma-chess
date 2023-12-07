@@ -1,27 +1,11 @@
-[package]
-name = "gamma_chess"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+    "crates/gamma_chess",
+    "crates/gamma_chess_py",
+]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-name = "gamma_chess"
-crate-type = ["lib", "cdylib"]
+[profile.release]
+debug = true
 
-[dependencies]
-anyhow = "1.0"
-pgn-reader = "0.25"
-indicatif = "0.17"
-rayon = "1.8"
-prost = "0.12"
-bytes = "1.5"
-prost-build = "0.12"
-shakmaty = "0.26"
-tch = "0.14.0"
-pyo3 = "0.18.3"
-# pyo3 = "0.19.0"
-pyo3-tch = "0.14"
-# torch-sys = "0.14.0"
-
-[build-dependencies]
-pyo3-build-config = "0.20"
+[profile.dev]
+debug = true
