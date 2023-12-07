@@ -1,0 +1,17 @@
+[env]
+# LIBTORCH_USE_PYTORCH = "1"
+LIBTORCH = { value = "torch" , relative = true }
+DYLD_LIBRARY_PATH = { value = "torch/lib" , relative = true }
+
+[target.aarch64-apple-darwin]
+rustflags = [
+    "-C", "link-args=-Wl,-rpath,/Users/nuno/.pyenv/versions/3.11.7/envs/pyo3/lib/python3.11/site-packages/torch/lib"
+]
+
+# For more on this check issue:
+# https://github.com/PyO3/rust-numpy/issues/223
+# [target.aarch64-apple-darwin]
+# rustflags = [
+#   "-C", "link-arg=-undefined",
+#   "-C", "link-arg=dynamic_lookup",
+# ]

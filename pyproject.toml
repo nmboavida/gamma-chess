@@ -1,18 +1,16 @@
-[tool.poetry]
-name = "gammax"
-version = "0.1.0"
-description = ""
-authors = ["Nuno Boavida <45330362+nmboavida@users.noreply.github.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-python-chess = "^1.999"
-jupyterlab = "^4.0.9"
-torch = "^2.1.1"
-numpy = "^1.26.2"
-
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "gamma_chess"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dynamic = ["version"]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
