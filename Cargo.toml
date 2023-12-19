@@ -2,6 +2,7 @@
 members = [
     "crates/gamma_chess",
     "crates/gamma_chess_py",
+    "crates/workflows",
 ]
 
 [profile.release]
@@ -9,3 +10,6 @@ debug = true
 
 [profile.dev]
 debug = true
+
+[profile.test]
+opt-level = 3

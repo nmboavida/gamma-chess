@@ -1,8 +1,12 @@
 use ::gamma_chess::model::Dataset;
 /// Refer to the sample implementation:
 /// https://github.com/LaurentMazare/tch-ext
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*};
 use pyo3_tch::PyTensor;
+
+pub fn wrap_any_err(err: anyhow::Error) -> PyErr {
+    PyErr::new::<PyValueError, _>(format!("{err:?}"))
+}
 
 #[pyclass]
 struct PyDataset {
@@ -12,10 +16,9 @@ struct PyDataset {
 #[pymethods]
 impl PyDataset {
     #[new]
-    fn new(file_path: String) -> Self {
-        PyDataset {
-            dataset: Dataset::new(&file_path),
-        }
+    fn new(file_path: String) -> PyResult<Self> {
+        let dataset = Dataset::new(&file_path).map_err(wrap_any_err)?;
+        Ok(PyDataset { dataset })
     }
 
     #[getter]

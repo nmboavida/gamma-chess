@@ -18,6 +18,15 @@ bytes = "1.5"
 prost-build = "0.12"
 shakmaty = "0.26"
 tch = "0.14.0"
+torch-sys = "0.14.0"
+ndarray = { version = "0.15.6"}
 
 [build-dependencies]
 pyo3-build-config = "0.20"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"]}
+
+[[bench]]
+name = "feature_build"
+harness = false
