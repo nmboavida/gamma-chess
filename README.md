@@ -1,4 +1,4 @@
-# gamma-go
+# gamma-chess
 
 This projeect creates a machine learning model for chess that is inspired by Google's AlphaGo. To achieve this, we intergrate a Convolutional Neural Network (CNN) for next move prediction and Monte Carlo Tree Search (MCTS) for search the optional move. MCTS is a probablistic algorithm that is more suitable for Go as it is able to handle combinatorial explosion as opposed to deterministic algorithms that do exhaustive search. Nevertheless we will stick with MCTS as an opportunity to explore its intricacies.
 
